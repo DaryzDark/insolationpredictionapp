@@ -27,6 +27,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
+    implementation("org.springframework.boot:spring-boot-starter-validation:3.4.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf:3.4.0")
 
     implementation("org.liquibase:liquibase-core:4.29.2")
     implementation("org.postgresql:postgresql:42.7.4")
