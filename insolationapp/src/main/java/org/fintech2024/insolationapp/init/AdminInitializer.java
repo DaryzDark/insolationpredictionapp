@@ -7,6 +7,7 @@ import org.fintech2024.insolationapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -25,9 +26,9 @@ public class AdminInitializer implements CommandLineRunner {
     private String adminEmail;
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdminInitializer(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public AdminInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -40,7 +41,7 @@ public class AdminInitializer implements CommandLineRunner {
             admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setEmail(adminEmail);
             admin.setFullName("System Administrator");
-            admin.setRole(Role.ADMIN);
+            admin.setRole(Role.ROLE_ADMIN);
             admin.setActive(true);
             admin.setCreatedAt(LocalDateTime.now());
             admin.setUpdatedAt(LocalDateTime.now());

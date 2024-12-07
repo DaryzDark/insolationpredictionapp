@@ -1,6 +1,7 @@
 package org.fintech2024.insolationapp.service;
 
 import lombok.Data;
+import org.fintech2024.insolationapp.model.ExternalApiResponse;
 import org.fintech2024.insolationapp.model.RequestContent;
 import org.fintech2024.insolationapp.model.ResponseContent;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,5 @@ public class MlApiService {
         externalApiResponse.setStatusCode(statusCode);
 
         return externalApiResponse;
-    }
-
-    @Data
-    public static class ExternalApiResponse {
-        private ResponseContent content;
-        private int statusCode;
     }
 }

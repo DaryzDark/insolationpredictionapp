@@ -1,53 +1,62 @@
 package org.fintech2024.insolationapp.service;
 
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.fintech2024.insolationapp.model.*;
 import org.fintech2024.insolationapp.repository.RequestRepository;
-import org.fintech2024.insolationapp.repository.ResponseRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-@Slf4j
 @Service
+@RequiredArgsConstructor
 public class RequestService {
 
     private final RequestRepository requestRepository;
-    private final ResponseRepository responseRepository;
-    private final MlApiService externalApiService;
+    private final ResponseService responseService;
+    private final MlApiService mlApiService;
 
-    public RequestService(RequestRepository requestRepository,
-                          ResponseRepository responseRepository,
-                          MlApiService externalApiService) {
-        this.requestRepository = requestRepository;
-        this.responseRepository = responseRepository;
-        this.externalApiService = externalApiService;
+
+    // Получение всех запросов пользователя
+    public List<Request> getRequestsByUser(User user) {
+        return requestRepository.findAllRequestsByUser(user);
     }
 
-    @Transactional
-    public Response createAndProcessRequest(RequestContent content, User user) {
-        // Создание и сохранение запроса
+    // Создание нового запроса
+    public Request createRequest(RequestContent content, User user) {
         Request request = new Request();
         request.setContent(content);
         request.setUser(user);
         request.setStatus(RequestStatus.NEW);
-        request = requestRepository.save(request);
+        request.setCreatedAt(LocalDateTime.now());
+        request.setUpdatedAt(LocalDateTime.now());
 
-        // Отправка запроса во внешнюю систему
-        MlApiService.ExternalApiResponse externalResponse = externalApiService.sendRequest(content);
+        return requestRepository.save(request);
+    }
 
-        // Создание и сохранение ответа
-        Response response = new Response();
-        response.setRequest(request);
-        response.setContent(externalResponse.getContent());
-        response.setStatusCode(externalResponse.getStatusCode());
-        response = responseRepository.save(response);
+    // Обработка запроса: отправка во внешнюю систему
+    public void processRequest(Request request) {
+        try {
+            // Отправка запроса во внешнюю систему
+            ExternalApiResponse externalApiResponse = mlApiService.sendRequest(request.getContent());
 
-        // Обновление статуса запроса
-        request.setStatus(RequestStatus.COMPLETED);
+            var response = Response.builder()
+                            .request(request)
+                            .content(externalApiResponse.getContent())
+                            .statusCode(externalApiResponse.getStatusCode())
+                            .request(request)
+                            .build();
+            responseService.saveResponse(response);
+
+            // Обновление статуса запроса
+            request.setStatus(RequestStatus.COMPLETED);
+        } catch (Exception e) {
+            // Обновление статуса запроса при ошибке
+            request.setStatus(RequestStatus.FAILED);
+        }
+
+        request.setUpdatedAt(LocalDateTime.now());
         requestRepository.save(request);
-
-        return response;
     }
 }

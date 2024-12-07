@@ -1,10 +1,11 @@
 package org.fintech2024.insolationapp.service;
 
+import org.fintech2024.insolationapp.exeption.UserAlreadyExistsException;
 import org.fintech2024.insolationapp.exeption.UserNotFoundException;
 import org.fintech2024.insolationapp.model.Role;
 import org.fintech2024.insolationapp.model.User;
 import org.fintech2024.insolationapp.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,29 +14,34 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
-    public User createUser(User user) {
+    public void createUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Имя пользователя уже занято");
+            throw new UserAlreadyExistsException("Username was already taken");
         }
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email уже зарегистрирован");
+            throw new UserAlreadyExistsException("Email was already taken");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setActive(true);
-        user.setRole(Role.USER);
-        return userRepository.save(user);
+        user.setRole(Role.ROLE_USER);
+        userRepository.save(user);
     }
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+    }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User " + username + " not found"));
+    }
+    public UserDetailsService userDetailsService() {
+        return this::getUserByUsername;
     }
 
     public List<User> getAllUsers() {
@@ -51,6 +57,10 @@ public class UserService {
     public void deactivateUser(Long id) {
         User user = getUserById(id);
         user.setActive(false);
+        userRepository.save(user);
+    }
+
+    public void save(User user) {
         userRepository.save(user);
     }
 }

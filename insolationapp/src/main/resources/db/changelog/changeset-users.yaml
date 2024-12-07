@@ -5,7 +5,6 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: users
-            ifNotExists: true
             columns:
               - column:
                   name: id
@@ -29,17 +28,20 @@ databaseChangeLog:
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
+                    unique: true
               - column:
                   name: full_name
                   type: VARCHAR(255)
               - column:
                   name: created_at
                   type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
               - column:
                   name: updated_at
                   type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
               - column:
