@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* Боковое меню */
+        .sidebar {
+            width: 70px;
+            height: 100vh; /* Занимает всю высоту окна */
+            position: fixed; /* Фиксированное расположение */
+            top: 0;
+            left: 0;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            font-size: 16px;
+            color: white;
+        }
+
+        .sidebar .nav-link .icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .sidebar .nav-link .text {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .sidebar:hover .nav-link .text {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar:hover .nav-link .icon {
+            margin-right: 15px;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+
+        /* Отступ для основного контента */
+        .content {
+            margin-left: 70px; /* Ширина свернутого меню */
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar:hover + .content {
+            margin-left: 250px; /* Ширина раскрытого меню */
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Боковое меню -->
+        <nav class="sidebar bg-dark text-white">
+            <div class="d-flex align-items-center px-3 py-3">
+                <img src="../resources/static/images/avatar.png" alt="Avatar" class="rounded-circle me-2" style="width: 30px; height: 30px;">
+                <h5 class="text" th:text="${username}">Имя пользователя</h5>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${page == 'profile' ? 'active' : ''}" href="/profile">
+                        <i class="bi bi-person icon"></i> <span class="text">Главная</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${page == 'history' ? 'active' : ''}" href="/history">
+                        <i class="bi bi-clock-history icon"></i> <span class="text">История запросов</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${page == 'settings' ? 'active' : ''}" href="/settings">
+                        <i class="bi bi-gear icon"></i> <span class="text">Настройки</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/auth/logout">
+                        <i class="bi bi-box-arrow-right icon"></i> <span class="text">Выход</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Основной контент -->
+        <main class="content col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div th:replace="~{::content}"></div>
+        </main>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+

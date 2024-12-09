@@ -13,6 +13,9 @@ databaseChangeLog:
                     constraints:
                       primaryKey: true
                 - column:
+                    name: request_name
+                    type: VARCHAR(255)
+                - column:
                     name: user_id
                     type: BIGINT
                     constraints:

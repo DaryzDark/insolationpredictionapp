@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
+    id("jacoco")
 }
 
 group = "org.fintech2024"
@@ -32,6 +33,9 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf:3.4.0")
 
+    implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
+
+
     implementation("org.liquibase:liquibase-core:4.29.2")
     implementation("org.postgresql:postgresql:42.7.4")
 
@@ -46,10 +50,28 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
+    testImplementation("org.testcontainers:junit-jupiter:1.20.2")
+    testImplementation("org.mockito:mockito-core:5.14.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it).exclude(
+                "**/model/**",
+            )
+        })
+    )
 }

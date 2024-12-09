@@ -1,12 +1,15 @@
 package org.fintech2024.insolationapp.model;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor(force = true)
 public class SignUpRequest {
 
     @Size(min = 5, max = 50, message = "Username must be between 5 and 50 characters")
@@ -25,4 +28,5 @@ public class SignUpRequest {
     @Size(min = 8, max = 255, message = "Name length must be between 8 and 255 characters")
     @NotBlank(message = "Name cannot be empty")
     private String fullName;
+
 }

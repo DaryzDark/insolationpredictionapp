@@ -1,5 +1,6 @@
 package org.fintech2024.insolationapp.service;
 
+import lombok.RequiredArgsConstructor;
 import org.fintech2024.insolationapp.exeption.UserAlreadyExistsException;
 import org.fintech2024.insolationapp.exeption.UserNotFoundException;
 import org.fintech2024.insolationapp.model.Role;
@@ -11,13 +12,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     public void createUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {

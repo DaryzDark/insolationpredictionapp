@@ -4,50 +4,50 @@ import lombok.RequiredArgsConstructor;
 import org.fintech2024.insolationapp.model.Request;
 import org.fintech2024.insolationapp.model.RequestContent;
 import org.fintech2024.insolationapp.model.Response;
-import org.fintech2024.insolationapp.model.User;
 import org.fintech2024.insolationapp.service.RequestService;
 import org.fintech2024.insolationapp.service.ResponseService;
 import org.fintech2024.insolationapp.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
-@RestController
+@Controller
+@RequestMapping("/history")
 @RequiredArgsConstructor
-@RequestMapping("/profile/history")
 public class HistoryController {
-
+    private final UserService userService;
     private final RequestService requestService;
     private final ResponseService responseService;
-    private final UserService userService;
 
-    // Отображение страницы истории запросов
     @GetMapping
-    public String showHistoryPage(Model model, Principal principal) {
-        String username = principal.getName();
-        User user = userService.getUserByUsername(username);
-
-        // Получение всех запросов пользователя
-        List<Request> requests = requestService.getRequestsByUser(user);
+    public String showHistoryPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        List<Request> requests = requestService.getRequestsByUser(userService.getUserByUsername(userDetails.getUsername()));
+        Map<Long, Response> responses = responseService.getResponsesForRequests(requests);
+        model.addAttribute("title", "История запросов");
+        model.addAttribute("username", userDetails.getUsername());
+        model.addAttribute("page", "history");
         model.addAttribute("requests", requests);
-        model.addAttribute("username", username);
-
-        return "history"; // Шаблон history.html
+        model.addAttribute("responses", responses);
+        return "history";
     }
 
-    // Обработка создания нового запроса
     @PostMapping("/create")
-    public String createRequest(@RequestParam("content") RequestContent content, Principal principal) {
-        String username = principal.getName();
-        User user = userService.getUserByUsername(username);
+    public String createRequest(@RequestParam String requestName,
+                                @RequestParam String exampleRequestContent,
+                                @AuthenticationPrincipal UserDetails userDetails) {
+        RequestContent content = new RequestContent();
+        content.setExampleRequestContent(exampleRequestContent);
 
-        // Создание и обработка запроса
-        Request request = requestService.createRequest(content, user);
+        Request request = requestService.createRequest(requestName, content, userService.getUserByUsername(userDetails.getUsername()));
         requestService.processRequest(request);
-
-        return "redirect:/profile/history";
+        return "redirect:/history";
     }
 }

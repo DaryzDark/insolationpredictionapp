@@ -1,11 +1,13 @@
 package org.fintech2024.insolationapp.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.fintech2024.insolationapp.model.AuthenticationResponse;
 import org.fintech2024.insolationapp.model.Role;
 import org.fintech2024.insolationapp.model.SignInRequest;
 import org.fintech2024.insolationapp.model.SignUpRequest;
 import org.fintech2024.insolationapp.security.JwtService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,13 +18,15 @@ import org.fintech2024.insolationapp.model.User;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
+    @Value("${security_config.jwtExpirationTime}")
+    private int jwtExpirationMs;
+
     private final UserService userService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse signUp(SignUpRequest request) {
-
+    public void signUp(SignUpRequest request, HttpServletResponse response) {
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -33,11 +37,11 @@ public class AuthenticationService {
 
         userService.createUser(user);
 
-        var jwt = jwtService.generateToken(user, false);
-        return new AuthenticationResponse(jwt);
+        var jwt = jwtService.generateToken(user);
+        setJwtCookie(response, jwt);
     }
 
-    public AuthenticationResponse signIn(SignInRequest request) {
+    public void signIn(SignInRequest request, HttpServletResponse response) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getUsername(),
                 request.getPassword()
@@ -47,16 +51,27 @@ public class AuthenticationService {
                 .userDetailsService()
                 .loadUserByUsername(request.getUsername());
 
-        var jwt = jwtService.generateToken(user, request.isRememberMe());
-        return new AuthenticationResponse(jwt);
+        var jwt = jwtService.generateToken(user);
+        setJwtCookie(response, jwt);
     }
 
-    public void logout(String token) {
-        jwtService.invalidateToken(token);
-    }
+    public void updateUserPassword(User user, String password, String confirmPassword) {
+        if (password != null && !password.isBlank()) {
+            if (!password.equals(confirmPassword)) {
+                throw new IllegalArgumentException("Пароли не совпадают");
+            }
+            user.setPassword(passwordEncoder.encode(password));
+        }
 
-    public void updatePassword(User user, String newPassword) {
-        user.setPassword(passwordEncoder.encode(newPassword));
         userService.save(user);
+    }
+
+    private void setJwtCookie(HttpServletResponse response, String jwt) {
+        Cookie jwtCookie = new Cookie("jwt", jwt);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(false);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(jwtExpirationMs / 1000);
+        response.addCookie(jwtCookie);
     }
 }

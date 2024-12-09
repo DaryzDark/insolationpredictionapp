@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{profilebase.html}" lang="ru">
+<div th:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap align-items-center pb-2 mb-3 border-bottom">
+        <h1 class="h2">Настройки</h1>
+    </div>
+
+    <!-- Информация о пользователе -->
+    <div class="mb-4">
+        <p><strong>Имя пользователя:</strong> <span th:text="${user.username}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+    </div>
+
+    <!-- Форма изменения пароля -->
+    <form th:action="@{/profile/settings/update}" method="post" class="row g-3">
+        <div class="col-md-6">
+            <label for="password" class="form-label">Новый пароль</label>
+            <input type="password" id="password" name="password" class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label for="confirmPassword" class="form-label">Подтвердите пароль</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        </div>
+    </form>
+</div>
+</html>

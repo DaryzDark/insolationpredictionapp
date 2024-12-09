@@ -1,7 +1,9 @@
 package org.fintech2024.insolationapp.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.Type;
 
 import java.time.LocalDateTime;
 
@@ -14,12 +16,13 @@ public class Request {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Связь с пользователем, который создал запрос
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Содержание запроса
+    private String requestName;
+
+    @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb", nullable = false)
     private RequestContent content;
 
@@ -27,15 +30,12 @@ public class Request {
     @Column(nullable = false)
     private RequestStatus status;
 
-    // Дата и время создания запроса
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Дата и время последнего обновления запроса
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // Обработка времени создания и обновления
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

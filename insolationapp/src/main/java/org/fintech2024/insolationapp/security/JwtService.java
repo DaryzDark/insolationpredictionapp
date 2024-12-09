@@ -25,13 +25,11 @@ public class JwtService {
     @Value("${security_config.jwtExpirationTime}")
     private int jwtExpirationMs;
 
-    private final Map<String, Boolean> invalidatedTokens = new ConcurrentHashMap<>();
-
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public String generateToken(UserDetails userDetails, boolean rememberMe) {
+    public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         if (userDetails instanceof User customUserDetails) {
             claims.put("id", customUserDetails.getId());
@@ -46,7 +44,7 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token) && !isTokenInvalidated(token);
+        return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolvers) {
@@ -58,16 +56,8 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-    public void invalidateToken(String token) {
-        invalidatedTokens.put(token, true);
-    }
-
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
-    }
-
-    public boolean isTokenInvalidated(String token) {
-        return invalidatedTokens.getOrDefault(token, false);
     }
 
     private Claims extractAllClaims(String token) {
@@ -83,3 +73,4 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
+

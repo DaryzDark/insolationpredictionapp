@@ -30,6 +30,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserService userService;
 
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
@@ -42,12 +44,19 @@ public class SecurityConfig {
                     return corsConfiguration;
                 }))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/auth/**", "/").anonymous()
+                        .requestMatchers("/auth/**", "/").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-resources/*").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout") // URL для обработки логаута
+                        .logoutSuccessUrl("/auth/logout-success") // URL после успешного выхода
+                        .deleteCookies("jwt") // Удаление JWT cookie
+                        .invalidateHttpSession(true) // Инвалидация сессии
+                        .permitAll()
+                );
         return http.build();
     }
 

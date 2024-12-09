@@ -14,11 +14,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -34,8 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Извлечение JWT из Cookies
-        String jwt = Arrays.stream(request.getCookies())
+        String jwt = Optional.ofNullable(request.getCookies()).stream().flatMap(Arrays::stream)
                 .filter(cookie -> "jwt".equals(cookie.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
@@ -44,7 +43,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwt != null) {
             String username = jwtService.extractUserName(jwt);
 
-            // Проверка аутентификации
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userService.getUserByUsername(username);
 

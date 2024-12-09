@@ -1,10 +1,11 @@
 package org.fintech2024.insolationapp.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.fintech2024.insolationapp.model.*;
 import org.fintech2024.insolationapp.repository.RequestRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,29 +19,28 @@ public class RequestService {
     private final MlApiService mlApiService;
 
 
-    // Получение всех запросов пользователя
     public List<Request> getRequestsByUser(User user) {
         return requestRepository.findAllRequestsByUser(user);
     }
 
-    // Создание нового запроса
-    public Request createRequest(RequestContent content, User user) {
+    @Transactional
+    public Request createRequest(String requestName, RequestContent content, User user) {
         Request request = new Request();
+        request.setRequestName(requestName);
         request.setContent(content);
         request.setUser(user);
         request.setStatus(RequestStatus.NEW);
-        request.setCreatedAt(LocalDateTime.now());
-        request.setUpdatedAt(LocalDateTime.now());
-
         return requestRepository.save(request);
     }
 
-    // Обработка запроса: отправка во внешнюю систему
+    @Async
+    @Transactional
     public void processRequest(Request request) {
         try {
-            // Отправка запроса во внешнюю систему
+            Thread.sleep(2000);
+            request.setStatus(RequestStatus.PROCESSING);
+            Thread.sleep(10000);
             ExternalApiResponse externalApiResponse = mlApiService.sendRequest(request.getContent());
-
             var response = Response.builder()
                             .request(request)
                             .content(externalApiResponse.getContent())
@@ -49,8 +49,11 @@ public class RequestService {
                             .build();
             responseService.saveResponse(response);
 
-            // Обновление статуса запроса
-            request.setStatus(RequestStatus.COMPLETED);
+            if (externalApiResponse.getStatusCode() == 200) {
+                request.setStatus(RequestStatus.COMPLETED);
+            } else {
+                request.setStatus(RequestStatus.ERROR);
+            }
         } catch (Exception e) {
             // Обновление статуса запроса при ошибке
             request.setStatus(RequestStatus.FAILED);

@@ -6,6 +6,13 @@ security_config:
   jwtSecret: WK5KyXn0BrCA1K9N+/yNykLkXa7rfDdbSaEzxeXqf2wyVhrBiIlnhGpaXnlyDUZpUT5SsgOiscWnULH5G8hA6g==
   jwtExpirationTime: 86400000
 spring:
+  thymeleaf:
+    enabled: true
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
   datasource:

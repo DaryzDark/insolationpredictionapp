@@ -1,6 +1,5 @@
 package org.fintech2024.insolationapp.model;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
